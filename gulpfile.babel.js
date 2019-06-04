@@ -179,6 +179,16 @@ function vendorSass(done) {
         .pipe(gulp.dest(config.src.vendor.styles));
 }
 
+function cleanDist() {
+    const sources = [
+        config.dist.scripts,
+        config.dist.styles,
+        config.dist.webfonts
+    ];
+
+    return del(sources);
+}
+
 function distVendorScripts() {
     const sources = config.src.vendor.scripts + '/**/*.*';
     return gulp.src(sources).pipe(gulp.dest(config.dist.scripts));
@@ -205,8 +215,8 @@ const _copyVendorAssets = gulp.parallel(_copyVendorSass, _copyVendorScripts, _co
 const _cleanVendorAssets = gulp.parallel(cleanVendorSass, cleanVendorScripts, cleanVendorStyles, cleanVendorWebfonts);
 const _vendorSass = vendorSass;
 
-const _clean = gulp.parallel(_cleanVendorAssets);
-const _build = gulp.series(_copyVendorAssets, _vendorSass);
+const _clean = gulp.parallel(_cleanVendorAssets, cleanDist);
+const _build = gulp.series(_clean, _copyVendorAssets, _vendorSass);
 const _distVendor = gulp.parallel(distVendorScripts, distVendorStyles, distVendorWebfonts);
 const _dist = gulp.series(_build, _distVendor);
 
