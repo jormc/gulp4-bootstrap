@@ -204,6 +204,13 @@ function distVendorWebfonts() {
     return gulp.src(sources).pipe(gulp.dest(config.dist.webfonts));
 }
 
+function watch() {
+    gulp.watch(config.src.vendor.scripts + '/**/*.*', distVendorScripts);
+    gulp.watch(config.src.vendor.styles + '/**/*.*', distVendorStyles);
+    gulp.watch(config.src.vendor.webFonts + '/**/*.*', distVendorWebfonts);
+    gulp.watch(config.src.vendor.sass + '/**/*.*', vendorSass);
+}
+
 /////////////////////////////////////////////////////////////
 // Complex tasks
 /////////////////////////////////////////////////////////////
@@ -219,9 +226,11 @@ const _clean = gulp.parallel(_cleanVendorAssets, cleanDist);
 const _build = gulp.series(_clean, _copyVendorAssets, _vendorSass);
 const _distVendor = gulp.parallel(distVendorScripts, distVendorStyles, distVendorWebfonts);
 const _dist = gulp.series(_build, _distVendor);
+const _watch = gulp.series(_dist, watch);
 
 /////////////////////////////////////////////////////////////
 // Public tasks
 /////////////////////////////////////////////////////////////
 exports.default = _dist;
 exports.clean = _clean;
+exports.watch = _watch;
