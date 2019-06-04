@@ -1,0 +1,119 @@
+{
+    "vars": {
+        "minimize": true
+    },
+    "build": {
+        "scripts": "./scripts",
+        "styles": "./styles",
+        "webfonts": "./fonts"
+    },
+    "src": {
+        "vendor": {
+            "sass": "./src/vendor/sass",
+            "scripts": "./src/vendor/scripts",
+            "styles": "./src/vendor/styles",
+            "webfonts": "./src/vendor/webfonts"
+        },
+        "theme": {
+            "sass": "./src/theme/sass",
+            "scripts": "./src/theme/scripts",
+            "styles": "./src/theme/styles",
+            "webfonts": "./src/theme/webfonts"
+        }
+    },
+    "assets": {
+        "vendor": {
+            "sass": [
+                {
+                    "name": "bootstrap",
+                    "src": [
+                        "./node_modules/bootstrap/scss/**/*.*"
+                    ],
+                    "active": true
+                },
+                {
+                    "name": "font-awesome",
+                    "src": [
+                        "./node_modules/font-awesome/scss/**/*.*"
+                    ],
+                    "active": false
+                }
+            ],
+            "scripts": [
+                {
+                    "name": "bootstrap",
+                    "src": {
+                        "min": [
+                            "./node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"
+                        ],
+                        "expanded": [
+                            "./node_modules/bootstrap/dist/js/bootstrap.bundle.js"
+                        ]
+                    },
+                    "active": true
+                },
+                {
+                    "name": "popper.js",
+                    "src": {
+                        "min": [
+                            "./node_modules/popper.js/dist/popper.min.js",
+                            "./node_modules/popper.js/dist/popper-utils.min.js"
+                        ],
+                        "expanded": [
+                            "./node_modules/popper.js/dist/popper.js",
+                            "./node_modules/popper.js/dist/popper-utils.js"
+                        ]
+                    },
+                    "active": false
+                },
+                {
+                    "name": "holderjs",
+                    "src": {
+                        "min": [
+                            "./node_modules/holderjs/holder.min.js"
+                        ],
+                        "expanded": [
+                            "./node_modules/holderjs/holder.js"
+                        ]
+                    },
+                    "active": true
+                },
+                {
+                    "name": "jquery",
+                    "src": {
+                        "min": [
+                            "./node_modules/jquery/dist/jquery.min.js"
+                        ],
+                        "expanded": [
+                            "./node_modules/jquery/dist/jquery.js"
+                        ]
+                    },
+                    "active": true
+                }
+            ],
+            "styles": [
+                {
+                    "name": "font-awesome",
+                    "src": {
+                        "min": [
+                            "./node_modules/font-awesome/css/font-awesome.min.css"
+                        ],
+                        "expanded": [
+                            "./node_modules/font-awesome/css/font-awesome.css"
+                        ]
+                    },
+                    "active": true
+                }
+            ],
+            "webfonts": [
+                {
+                    "name": "font-awesome",
+                    "src": [
+                        "./node_modules/font-awesome/fonts/*.*"
+                    ],
+                    "active": true
+                }
+            ]
+        }
+    }
+}
