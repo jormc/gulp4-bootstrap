@@ -8,6 +8,8 @@ import flatten from "gulp-flatten";
 import cleanCSS from "gulp-clean-css";
 import rename from "gulp-rename";
 
+sass.compiler = require('node-sass');
+
 const config = require('./gulp-config.json');
 
 //////////////////////////////////////////////////////////////////////
