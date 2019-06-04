@@ -2,7 +2,7 @@
     "vars": {
         "minimize": true
     },
-    "build": {
+    "dist": {
         "scripts": "./scripts",
         "styles": "./styles",
         "webfonts": "./fonts"

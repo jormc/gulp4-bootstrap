@@ -62,4 +62,7 @@ typings/
 
 #############################################################3
 # Specific project ignores
+fonts
+scripts
+styles
 src/vendor

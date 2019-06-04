@@ -179,6 +179,21 @@ function vendorSass(done) {
         .pipe(gulp.dest(config.src.vendor.styles));
 }
 
+function distVendorScripts() {
+    const sources = config.src.vendor.scripts + '/**/*.*';
+    return gulp.src(sources).pipe(gulp.dest(config.dist.scripts));
+}
+
+function distVendorStyles() {
+    const sources = config.src.vendor.styles + '/**/*.*';
+    return gulp.src(sources).pipe(gulp.dest(config.dist.styles));
+}
+
+function distVendorWebfonts() {
+    const sources = config.src.vendor.webfonts + '/**/*.*';
+    return gulp.src(sources).pipe(gulp.dest(config.dist.webfonts));
+}
+
 /////////////////////////////////////////////////////////////
 // Complex tasks
 /////////////////////////////////////////////////////////////
@@ -192,9 +207,11 @@ const _vendorSass = vendorSass;
 
 const _clean = gulp.parallel(_cleanVendorAssets);
 const _build = gulp.series(_copyVendorAssets, _vendorSass);
+const _distVendor = gulp.parallel(distVendorScripts, distVendorStyles, distVendorWebfonts);
+const _dist = gulp.series(_build, _distVendor);
 
 /////////////////////////////////////////////////////////////
 // Public tasks
 /////////////////////////////////////////////////////////////
-exports.default = _build;
+exports.default = _dist;
 exports.clean = _clean;
