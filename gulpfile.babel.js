@@ -179,6 +179,26 @@ function vendorSass(done) {
         .pipe(gulp.dest(config.src.vendor.styles));
 }
 
+function cleanThemeStyles(done) {
+    return del(config.src.theme.styles + '/theme.css');
+}
+
+function themeSass() {
+    const sources = config.src.theme.sass + '/**/*.scss';
+
+    return gulp.src(sources)
+        .pipe(
+            sass
+            .sync({
+                outputStyle: "expanded"
+            })
+            .on("error", sass.logError)
+        )
+        .pipe(autoprefixer())
+        .pipe(flatten({ includeParents: 0} ))
+        .pipe(gulp.dest(config.src.theme.styles));
+}
+
 function cleanDist() {
     const sources = [
         config.dist.scripts,
@@ -204,6 +224,16 @@ function distVendorWebfonts() {
     return gulp.src(sources).pipe(gulp.dest(config.dist.webfonts));
 }
 
+function distThemeScripts() {
+    const sources = config.src.theme.scripts + '/**/*.*';
+    return gulp.src(sources).pipe(gulp.dest(config.dist.scripts));
+}
+
+function distThemeStyles() {
+    const sources = config.src.theme.styles + '/**/*.*';
+    return gulp.src(sources).pipe(gulp.dest(config.dist.styles));
+}
+
 function watch() {
     gulp.watch(config.src.vendor.scripts + '/**/*.*', distVendorScripts);
     gulp.watch(config.src.vendor.styles + '/**/*.*', distVendorStyles);
@@ -221,11 +251,13 @@ const _copyVendorWebfonts = gulp.series(cleanVendorWebfonts, copyVendorWebfonts)
 const _copyVendorAssets = gulp.parallel(_copyVendorSass, _copyVendorScripts, _copyVendorStyles, _copyVendorWebfonts);
 const _cleanVendorAssets = gulp.parallel(cleanVendorSass, cleanVendorScripts, cleanVendorStyles, cleanVendorWebfonts);
 const _vendorSass = vendorSass;
+const _themeSass = gulp.series(cleanThemeStyles, themeSass);
 
-const _clean = gulp.parallel(_cleanVendorAssets, cleanDist);
-const _build = gulp.series(_clean, _copyVendorAssets, _vendorSass);
+const _clean = gulp.parallel(_cleanVendorAssets, cleanThemeStyles, cleanDist);
+const _build = gulp.series(_clean, _copyVendorAssets, _vendorSass, _themeSass);
 const _distVendor = gulp.parallel(distVendorScripts, distVendorStyles, distVendorWebfonts);
-const _dist = gulp.series(_build, _distVendor);
+const _distTheme = gulp.parallel(distThemeScripts, distThemeStyles);
+const _dist = gulp.series(_build, _distVendor, _distTheme);
 const _watch = gulp.series(_dist, watch);
 
 /////////////////////////////////////////////////////////////
@@ -233,4 +265,5 @@ const _watch = gulp.series(_dist, watch);
 /////////////////////////////////////////////////////////////
 exports.default = _dist;
 exports.clean = _clean;
+exports.cleanAssets = _cleanVendorAssets;
 exports.watch = _watch;
