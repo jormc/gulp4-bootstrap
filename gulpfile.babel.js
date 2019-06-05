@@ -7,10 +7,15 @@ import autoprefixer from "gulp-autoprefixer";
 import flatten from "gulp-flatten";
 import cleanCSS from "gulp-clean-css";
 import rename from "gulp-rename";
+import gulpIf from "gulp-if";
 
 sass.compiler = require('node-sass');
 
 const config = require('./gulp-config.json');
+
+// User 'dev' value for uncompressed assets,
+// and 'pro' for minified ones (production environment)
+const environment = "dev";
 
 //////////////////////////////////////////////////////////////////////
 // Utils tasks
@@ -83,8 +88,7 @@ function copyVendorScripts(done) {
     sources.forEach(source =>  {
 
         var scripts = [];
-        // TODO Test if we require min or expanded version
-        if (config.vars.minimize) {
+        if (environment === 'pro') {
             scripts = source.src.min;
         } else {
             scripts = source.src.expanded;
@@ -118,8 +122,7 @@ function copyVendorStyles(done) {
     sources.forEach(source =>  {
         
         var styles = [];
-        // TODO Test if we require min or expanded version
-        if (config.vars.minimize) {
+        if (environment === 'pro') {
             styles = source.src.min;
         } else {
             styles = source.src.expanded;
@@ -169,13 +172,13 @@ function vendorSass(done) {
         )
         .pipe(autoprefixer())
         .pipe(flatten({ includeParents: 0} ))
-        .pipe(cleanCSS({debug: true, compatibility: 'ie8'}, (details) => {
+        .pipe(gulpIf(environment === 'pro', cleanCSS({debug: true, compatibility: 'ie8'}, (details) => {
             log(`\t${details.name}: ${details.stats.originalSize}b (original)`);
             log(`\t${details.name}: ${details.stats.minifiedSize}b (minified)`);
-        }))
-        .pipe(rename({
+        })))
+        .pipe(gulpIf(environment === 'pro', rename({
             suffix: '.min'
-        }))
+        })))
         .pipe(gulp.dest(config.src.vendor.styles));
 }
 
@@ -196,6 +199,13 @@ function themeSass() {
         )
         .pipe(autoprefixer())
         .pipe(flatten({ includeParents: 0} ))
+        .pipe(gulpIf(environment === 'pro', cleanCSS({debug: true, compatibility: 'ie8'}, (details) => {
+            log(`\t${details.name}: ${details.stats.originalSize}b (original)`);
+            log(`\t${details.name}: ${details.stats.minifiedSize}b (minified)`);
+        })))
+        .pipe(gulpIf(environment === 'pro', rename({
+            suffix: '.min'
+        })))
         .pipe(gulp.dest(config.src.theme.styles));
 }
 
