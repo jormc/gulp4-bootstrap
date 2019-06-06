@@ -8,6 +8,7 @@ import flatten from "gulp-flatten";
 import cleanCSS from "gulp-clean-css";
 import rename from "gulp-rename";
 import gulpIf from "gulp-if";
+import eslint from "gulp-eslint";
 
 sass.compiler = require('node-sass');
 
@@ -236,7 +237,16 @@ function distVendorWebfonts() {
 
 function distThemeScripts() {
     const sources = config.src.theme.scripts + '/**/*.*';
-    return gulp.src(sources).pipe(gulp.dest(config.dist.scripts));
+    return gulp.src(sources)
+        .pipe(eslint({
+            rules: {
+                quotes: [1, 'single'],
+                semi: [1, 'always']
+            }
+        }))
+        .pipe(eslint.format())
+        .pipe(eslint.failAfterError())
+        .pipe(gulp.dest(config.dist.scripts));
 }
 
 function distThemeStyles() {
