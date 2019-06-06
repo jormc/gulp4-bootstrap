@@ -66,3 +66,5 @@ fonts
 scripts
 styles
 src/vendor
+src/theme/styles/theme.css
+src/theme/styles/theme.min.css
