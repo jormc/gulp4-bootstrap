@@ -9,6 +9,7 @@ import cleanCSS from "gulp-clean-css";
 import rename from "gulp-rename";
 import gulpIf from "gulp-if";
 import eslint from "gulp-eslint";
+import sasslint from "gulp-sass-lint";
 
 sass.compiler = require('node-sass');
 
@@ -184,7 +185,11 @@ function vendorSass(done) {
 }
 
 function cleanThemeStyles(done) {
-    return del(config.src.theme.styles + '/theme.css');
+    const sources = [
+        config.src.theme.styles + '/theme.css',
+        config.src.theme.styles + '/theme.min.css'
+    ];
+    return del(sources);
 }
 
 function themeSass() {
@@ -208,6 +213,14 @@ function themeSass() {
             suffix: '.min'
         })))
         .pipe(gulp.dest(config.src.theme.styles));
+}
+
+function themeSassLint() {
+    const sources = config.src.theme.sass + '/**/*.scss';
+    return gulp.src(sources)
+        .pipe(sasslint())
+        .pipe(sasslint.format())
+        .pipe(sasslint.failOnError())
 }
 
 function cleanDist() {
@@ -271,7 +284,7 @@ const _copyVendorWebfonts = gulp.series(cleanVendorWebfonts, copyVendorWebfonts)
 const _copyVendorAssets = gulp.parallel(_copyVendorSass, _copyVendorScripts, _copyVendorStyles, _copyVendorWebfonts);
 const _cleanVendorAssets = gulp.parallel(cleanVendorSass, cleanVendorScripts, cleanVendorStyles, cleanVendorWebfonts);
 const _vendorSass = vendorSass;
-const _themeSass = gulp.series(cleanThemeStyles, themeSass);
+const _themeSass = gulp.series(cleanThemeStyles, themeSassLint, themeSass);
 
 const _clean = gulp.parallel(_cleanVendorAssets, cleanThemeStyles, cleanDist);
 const _build = gulp.series(_clean, _copyVendorAssets, _vendorSass, _themeSass);

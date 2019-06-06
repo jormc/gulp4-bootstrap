@@ -1,6 +1,2 @@
-@import '../../vendor/sass/bootstrap/functions';
-@import '../../vendor/sass/bootstrap/variables';
-@import '../../vendor/sass/bootstrap/mixins/breakpoints';
-
-@import "./mixins/mixins";
-@import "./partials/test";
+// Include all bootstrap scss just for testing css lint
+@import '../../vendor/sass/bootstrap/bootstrap';
