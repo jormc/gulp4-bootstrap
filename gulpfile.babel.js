@@ -1,3 +1,13 @@
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//                                                                                              //
+//  gulp4-bootstrap v. 1.0.0                                                                    //
+//                                                                                              //
+//  This simple project shows you how to use Gulp4 to work with Bootstrap                       //
+//  and other technologies for the web.                                                         //
+//                                                                                              //
+//  See readme.txt for more info.                                                               //
+//                                                                                              //
+//////////////////////////////////////////////////////////////////////////////////////////////////
 import gulp from "gulp";
 import del from "del";
 import log from "fancy-log";
@@ -10,14 +20,23 @@ import rename from "gulp-rename";
 import gulpIf from "gulp-if";
 import eslint from "gulp-eslint";
 import sasslint from "gulp-sass-lint";
+import csslint from "gulp-csslint";
+import uglify from "gulp-uglify";
 
+// External sass compiler
 sass.compiler = require('node-sass');
 
+// Externalize gulp config
 const config = require('./gulp-config.json');
 
-// User 'dev' value for uncompressed assets,
-// and 'pro' for minified ones (production environment)
-const environment = "dev";
+// User 'dev' value for uncompressed assets, test and build
+// and 'pro' for minified ones (production environment purposes)
+var environment = "dev";
+function setProEnv(done) {
+    environment = "pro";
+    log("Build environment setted to: " + environment);
+    done();
+}
 
 //////////////////////////////////////////////////////////////////////
 // Utils tasks
@@ -194,7 +213,6 @@ function cleanThemeStyles(done) {
 
 function themeSass() {
     const sources = config.src.theme.sass + '/**/*.scss';
-
     return gulp.src(sources)
         .pipe(
             sass
@@ -205,13 +223,9 @@ function themeSass() {
         )
         .pipe(autoprefixer())
         .pipe(flatten({ includeParents: 0} ))
-        .pipe(gulpIf(environment === 'pro', cleanCSS({debug: true, compatibility: 'ie8'}, (details) => {
-            log(`\t${details.name}: ${details.stats.originalSize}b (original)`);
-            log(`\t${details.name}: ${details.stats.minifiedSize}b (minified)`);
-        })))
-        .pipe(gulpIf(environment === 'pro', rename({
-            suffix: '.min'
-        })))
+        .pipe(sasslint())
+        .pipe(sasslint.format())
+        .pipe(sasslint.failOnError())
         .pipe(gulp.dest(config.src.theme.styles));
 }
 
@@ -221,6 +235,10 @@ function themeSassLint() {
         .pipe(sasslint())
         .pipe(sasslint.format())
         .pipe(sasslint.failOnError())
+}
+
+function themeScriptsLint() {
+    const sources = config.src.theme.scripts + '/**/*.js';
 }
 
 function cleanDist() {
@@ -249,7 +267,7 @@ function distVendorWebfonts() {
 }
 
 function distThemeScripts() {
-    const sources = config.src.theme.scripts + '/**/*.*';
+    const sources = config.src.theme.scripts + '/**/*.js';
     return gulp.src(sources)
         .pipe(eslint({
             rules: {
@@ -259,12 +277,26 @@ function distThemeScripts() {
         }))
         .pipe(eslint.format())
         .pipe(eslint.failAfterError())
+        .pipe(gulpIf(environment === 'pro', uglify()))
+        .pipe(gulpIf(environment === 'pro', rename({
+            suffix: '.min'
+        })))
         .pipe(gulp.dest(config.dist.scripts));
 }
 
 function distThemeStyles() {
-    const sources = config.src.theme.styles + '/**/*.*';
-    return gulp.src(sources).pipe(gulp.dest(config.dist.styles));
+    const sources = config.src.theme.styles + '/**/*.css';
+    return gulp.src(sources)
+        .pipe(csslint())
+        .pipe(csslint.formatter())
+        .pipe(gulpIf(environment === 'pro', cleanCSS({debug: true, compatibility: 'ie8'}, (details) => {
+            log(`\t${details.name}: ${details.stats.originalSize}b (original)`);
+            log(`\t${details.name}: ${details.stats.minifiedSize}b (minified)`);
+        })))
+        .pipe(gulpIf(environment === 'pro', rename({
+            suffix: '.min'
+        })))
+        .pipe(gulp.dest(config.dist.styles));
 }
 
 function watch() {
@@ -272,31 +304,42 @@ function watch() {
     gulp.watch(config.src.vendor.styles + '/**/*.*', distVendorStyles);
     gulp.watch(config.src.vendor.webFonts + '/**/*.*', distVendorWebfonts);
     gulp.watch(config.src.vendor.sass + '/**/*.*', vendorSass);
+    gulp.watch(config.src.theme.scripts + '/**/*.*', distThemeScripts);
+    gulp.watch(config.src.theme.styles + '/**/*.*', distThemeStyles);
+    gulp.watch(config.src.theme.sass + '/**/*.*', themeSass);
 }
 
 /////////////////////////////////////////////////////////////
 // Complex tasks
 /////////////////////////////////////////////////////////////
-const _copyVendorSass = gulp.series(cleanVendorSass, copyVendorSass);
-const _copyVendorScripts = gulp.series(cleanVendorScripts, copyVendorScripts);
-const _copyVendorStyles = gulp.series(cleanVendorStyles, copyVendorStyles);
-const _copyVendorWebfonts = gulp.series(cleanVendorWebfonts, copyVendorWebfonts);
-const _copyVendorAssets = gulp.parallel(_copyVendorSass, _copyVendorScripts, _copyVendorStyles, _copyVendorWebfonts);
-const _cleanVendorAssets = gulp.parallel(cleanVendorSass, cleanVendorScripts, cleanVendorStyles, cleanVendorWebfonts);
-const _vendorSass = vendorSass;
-const _themeSass = gulp.series(cleanThemeStyles, themeSassLint, themeSass);
-
-const _clean = gulp.parallel(_cleanVendorAssets, cleanThemeStyles, cleanDist);
-const _build = gulp.series(_clean, _copyVendorAssets, _vendorSass, _themeSass);
-const _distVendor = gulp.parallel(distVendorScripts, distVendorStyles, distVendorWebfonts);
-const _distTheme = gulp.parallel(distThemeScripts, distThemeStyles);
-const _dist = gulp.series(_build, _distVendor, _distTheme);
+// Clean vendor assets
+const _cleanVendor = gulp.parallel(cleanVendorSass, cleanVendorScripts, cleanVendorStyles, cleanVendorWebfonts) ;
+// Clean theme assets (non final ones, only builded sources)
+const _cleanTheme = gulp.parallel(cleanThemeStyles);
+// Clean all
+const _clean = gulp.parallel(_cleanVendor, _cleanTheme, cleanDist);
+// Copy all vendor assets
+const _copyVendorAssets = gulp.series(copyVendorSass, copyVendorScripts, copyVendorStyles, copyVendorWebfonts);
+// Build all vendor resources, if necessary
+const _buildVendor = gulp.series(_copyVendorAssets, vendorSass);
+// Build all theme resources
+const _buildTheme = gulp.series(themeSass);
+// Build all: vendor and theme resources
+const _build = gulp.series(_clean, _buildVendor, _buildTheme);
+// Dist vendor sources
+const _distVendor = gulp.series(_buildVendor, distVendorScripts, distVendorStyles, distVendorWebfonts);
+// Dist theme sources
+const _distTheme = gulp.series(_buildTheme, distThemeScripts, distThemeStyles);
+// Dist all
+const _dist = gulp.series(setProEnv, _build, gulp.parallel(_distVendor, _distTheme));
+// Watch all source files
 const _watch = gulp.series(_dist, watch);
 
 /////////////////////////////////////////////////////////////
 // Public tasks
 /////////////////////////////////////////////////////////////
-exports.default = _dist;
 exports.clean = _clean;
-exports.cleanAssets = _cleanVendorAssets;
+exports.build = _build;
+exports.dist = _dist;
 exports.watch = _watch;
+exports.default = _dist;
