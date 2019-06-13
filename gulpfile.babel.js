@@ -5,7 +5,7 @@
 //  This simple project shows you how to use Gulp4 to work with Bootstrap                       //
 //  and other technologies for the web.                                                         //
 //                                                                                              //
-//  See readme.txt for more info.                                                               //
+//  See README.md for more info.                                                                   //
 //                                                                                              //
 //////////////////////////////////////////////////////////////////////////////////////////////////
 import gulp from "gulp";
